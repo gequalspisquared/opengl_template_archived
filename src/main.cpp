@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -10,6 +11,9 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
+#include "vertex_array.h"
+#include "vertex_buffer.h"
+#include "skybox.h"
 #include "shader.h"
 #include "camera.h"
 
@@ -22,7 +26,7 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 1600;
 const unsigned int SCR_HEIGHT = 900;
 
-Camera camera;
+Camera camera(glm::vec3(0.0, 0.0, -0.25));
 float last_x = SCR_WIDTH / 2.0f;
 float last_y = SCR_HEIGHT / 2.0f;
 bool first_mouse = true;
@@ -78,25 +82,22 @@ int main()
          0.0f,  0.5f, 0.0f  // top   
     }; 
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
+    VertexArray VAO;
+    VertexBuffer VBO;
+    VAO.bind();
+    VBO.set_data(vertices, sizeof(vertices));
+    VBO.set_attributes(0, 3, 3, 0); // position
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0); 
-
+    Shader skybox_shader(RESOURCES_PATH "shaders/skybox.vs", RESOURCES_PATH "shaders/skybox.fs");
+    SkyboxFacePaths paths = {
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveX.png",
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeX.png",
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveY.png",
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeY.png",
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveZ.png",
+        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeZ.png",
+    };
+    Skybox skybox(paths, &skybox_shader);
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -130,13 +131,15 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
 
         {
             static float f = 0.0;
             static int   counter = 0;
 
             ImGui::Begin("New Window");
+
+            ImGui::Text("FPS: 0%.1f", 1.0f / delta_time);
 
             ImGui::Text("This is a line of text.");
 
@@ -157,28 +160,41 @@ int main()
         ImGui::Render();
         // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // draw our first triangle
         // glUseProgram(shaderProgram);
         shader.use();
-
+        // skybox_shader.use();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.get_zoom()), 
                                                 static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 
                                                 0.1f, 100.0f);
         shader.set_mat4("projection", projection);
+        // skybox_shader.set_mat4("projection", projection);
 
         glm::mat4 view = camera.get_view_matrix();
         shader.set_mat4("view", view);
+        // skybox_shader.set_mat4("view", glm::mat4(glm::mat3(camera.get_view_matrix())));
 
         glm::mat4 model(1.0f);
         shader.set_mat4("model", model);
 
+        skybox_shader.use();
+        skybox_shader.set_mat4("projection", projection);
+        skybox_shader.set_mat4("view", glm::mat4(glm::mat3(camera.get_view_matrix())));
+        skybox.draw();
 
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        // skybox.draw();
+
+        shader.use();
+
+        // glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        VAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(0); // no need to unbind it every time 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glBindVertexArray(0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
