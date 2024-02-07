@@ -110,9 +110,6 @@ int main()
 
     Skybox skybox(paths, &skybox_shader);
 
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     // Setup ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -141,8 +138,6 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        // ImGui::ShowDemoWindow();
 
         {
             static float f = 0.0;
@@ -173,9 +168,7 @@ int main()
         glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // draw our first triangle
-        // glUseProgram(shaderProgram);
         shader.use();
-        // skybox_shader.use();
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.get_zoom()), 
                                                 static_cast<float>(SCR_WIDTH) / static_cast<float>(SCR_HEIGHT), 
@@ -195,17 +188,11 @@ int main()
         skybox_shader.set_mat4("view", glm::mat4(glm::mat3(camera.get_view_matrix())));
         skybox.draw();
 
-        // skybox.draw();
-
         shader.use();
-
         // glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         VAO.bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        // glBindVertexArray(0); // no need to unbind it every time 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glBindVertexArray(0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
