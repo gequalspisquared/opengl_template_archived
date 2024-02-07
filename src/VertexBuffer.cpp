@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-#include "vertex_buffer.h"
+#include "VertexBuffer.h"
 
 VertexBuffer::VertexBuffer() {
     glGenBuffers(1, &m_id);

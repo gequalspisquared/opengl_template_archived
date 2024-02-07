@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "shader.h"
-#include "vertex_array.h"
+#include "Shader.h"
+#include "VertexArray.h"
 
 typedef unsigned int SkyboxId;
 typedef std::vector<const char*> SkyboxFacePaths;

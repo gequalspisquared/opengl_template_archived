@@ -2,7 +2,7 @@
 
 #include <glad/glad.h>
 
-#include "index_buffer.h"
+#include "IndexBuffer.h"
 
 IndexBuffer::IndexBuffer() {
     glGenBuffers(1, &m_id);

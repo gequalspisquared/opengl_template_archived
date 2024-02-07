@@ -11,15 +11,16 @@
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
 
-#include "vertex_array.h"
-#include "vertex_buffer.h"
-#include "skybox.h"
-#include "shader.h"
-#include "camera.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
+#include "Skybox.h"
+#include "Shader.h"
+#include "Camera.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow *window);
 
 // settings
@@ -60,6 +61,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetKeyCallback(window, key_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -89,14 +91,23 @@ int main()
     VBO.set_attributes(0, 3, 3, 0); // position
 
     Shader skybox_shader(RESOURCES_PATH "shaders/skybox.vs", RESOURCES_PATH "shaders/skybox.fs");
+    // SkyboxFacePaths paths = {
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveX.png",
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeX.png",
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveY.png",
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeY.png",
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveZ.png",
+    //     RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeZ.png",
+    // };
     SkyboxFacePaths paths = {
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveX.png",
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeX.png",
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveY.png",
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeY.png",
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/PositiveZ.png",
-        RESOURCES_PATH "skyboxes/PoodsCalmNebula/NegativeZ.png",
+        RESOURCES_PATH "skyboxes/ocean/right.jpg",
+        RESOURCES_PATH "skyboxes/ocean/left.jpg",
+        RESOURCES_PATH "skyboxes/ocean/top.jpg",
+        RESOURCES_PATH "skyboxes/ocean/bottom.jpg",
+        RESOURCES_PATH "skyboxes/ocean/front.jpg",
+        RESOURCES_PATH "skyboxes/ocean/back.jpg",
     };
+
     Skybox skybox(paths, &skybox_shader);
 
     // uncomment this call to draw in wireframe polygons.
@@ -265,4 +276,18 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.process_scroll(static_cast<float>(yoffset));
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    static bool cursor_enabled = true;
+    if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+        glfwSetInputMode(window, GLFW_CURSOR, cursor_enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+        cursor_enabled = !cursor_enabled;
+    }
+
+    static bool wireframe_enabled = true;
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) {
+        glPolygonMode(GL_FRONT_AND_BACK, wireframe_enabled ? GL_LINE : GL_FILL);
+        wireframe_enabled = !wireframe_enabled;
+    }
 }

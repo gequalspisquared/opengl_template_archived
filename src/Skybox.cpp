@@ -4,10 +4,10 @@
 #include <glad/glad.h>
 #include <stb/stb_image.h>
 
-#include "skybox.h"
-#include "shader.h"
-#include "vertex_array.h"
-#include "vertex_buffer.h"
+#include "Skybox.h"
+#include "Shader.h"
+#include "VertexArray.h"
+#include "VertexBuffer.h"
 
 float skybox_vertices[] = {
         // positions          
@@ -65,6 +65,8 @@ Skybox::Skybox(const SkyboxFacePaths& paths, Shader* skybox_shader)
 
     glGenTextures(1, &m_id);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+    
+    stbi_set_flip_vertically_on_load(false);
 
     int width, height, num_channels;
     for (size_t i = 0; i < paths.size(); i++) {
