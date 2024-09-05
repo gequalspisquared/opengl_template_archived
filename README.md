@@ -1,3 +1,6 @@
+# WARNING: DEPRECATED
+This repo is no longer updated or maintained.
+
 # opengl_template
 A template project for getting OpenGL projects up an running quickly on Windows 
 and Linux.
